@@ -51,7 +51,7 @@ reducer v@(Atom _) = v
 reducer lexp@(Lambda (Atom v) e) = ret
                                 where
                                     ret = (etaDriver (Lambda (Atom v) (reducer e)))
-reducer lexp@(Apply a b) = betaDriver (Apply (reducer a) (reducer b))
+reducer lexp@(Apply a b) = betaDriver (alphaDriver(Apply (reducer a) (reducer b)))
 
 etaDriver :: Lexp -> Lexp
 --First two cannot be eta reduced. Ignore
@@ -76,6 +76,7 @@ caneta lexp@(Lambda (Atom v) e) = case e of
                                                                      not (c `elem` freevars a)
                                                                     else
                                                                      False
+                                                    otherwise -> False
                                     otherwise -> False
 
 betaDriver :: Lexp -> Lexp
@@ -94,26 +95,33 @@ beta lexp@(Apply a b) s rlexp=(Apply (beta a s rlexp) (beta b s rlexp))
 
 
 alphaDriver :: Lexp -> Lexp
-alphaDriver lexp@(Apply a b) = lexp
-                                where b=map (alpha a "" lexp) (freevars b)
+alphaDriver lexp@(Apply a b) = ( Apply (alphaIterate a (freevars b)) b)
 
-
+alphaIterate :: Lexp -> [String] -> Lexp
+alphaIterate lexp [] = lexp
+alphaIterate lexp (h:t) = alphaIterate lexp2 t
+                            where lexp2=alpha lexp "" lexp h
 
 alpha :: Lexp -> String -> Lexp -> String -> Lexp
-alpha lexp@(Atom v) r oLexp s = if v==s
-                                  then (Atom r)
-                                  else lexp
+alpha lexp@(Atom v) r oLexp s 
+  | not (v==s) = lexp
+  | v==s = if r=="" 
+           then (Atom r2)
+           else (Atom r)
+           where r2=(pickR oLexp)
+
+
 alpha lexp@(Lambda (Atom v) e) r oLexp s
   | not (v==s) = (Lambda (Atom v) (alpha e r oLexp s))
   | v==s = if r=="" 
-            then (Lambda (Atom r2) (alpha e (r2) oLexp s))
-            else(Lambda (Atom r) (alpha e r oLexp s))
-            where r2=(pickR oLexp)
+           then (Lambda (Atom r2) (alpha e (r2) oLexp s))
+           else(Lambda (Atom r) (alpha e r oLexp s))
+           where r2=(pickR oLexp)
                                                 
 alpha lexp@(Apply a b) r oLexp s= (Apply (alpha a r oLexp s) (alpha a r oLexp s))
 
 pickR :: Lexp -> String
-pickR lexp@(Apply a b) = head ((letters \\ boundvars lexp) \\freevars lexp)
+pickR lexp = head ((letters \\ boundvars lexp) \\freevars lexp)
 
 
 

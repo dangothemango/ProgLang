@@ -51,7 +51,7 @@ reducer v@(Atom _) = v
 reducer lexp@(Lambda (Atom v) e) = ret
                                 where
                                     ret = (etaDriver (Lambda (Atom v) (reducer e)))
-reducer lexp@(Apply a b) = betaDriver (Apply ([reducer a) (reducer b)])
+reducer lexp@(Apply a b) = alphaDriver lexp --betaDriver (Apply ([reducer a) (reducer b)])
 
 etaDriver :: Lexp -> Lexp
 --First two cannot be eta reduced. Ignore
@@ -94,15 +94,27 @@ beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
 
 
 alphaDriver :: Lexp -> Lexp
-alphaDriver lexp@(Apply a b) = if 
+alphaDriver lexp@(Apply a b) = map (alpha a "" lexp) (freevars b)
 
 
-alpha :: Lexp -> String -> String -> Lexp
-alpha lexp@(Atom v) s r = if v==s
+
+alpha :: Lexp -> String -> String -> Lexp -> Lexp
+alpha lexp@(Atom v) r oLexp s = if v==s
                             then (Atom r)
                             else lexp
-alpha lexp@(Lambda (Atom v) e) s r = if v==s
-                                        
+alpha lexp@(Lambda (Atom v) e) r oLexp s= if v==s
+                                        then
+                                            if r==""
+                                                then (Lambda (Atom r2) (alpha e r2 oLexp s))
+                                                else (Lambda (Atom r) (alpha e r oLexp s))
+                                                where r2=(pickR oLexp)
+                                        else
+                                            (Lambda (Atom v) (alpha e r oLexp s))
+alpha lexp@(Apply a b) r oLexp s= (Apply (alpha a r oLexp s) (alpha a r oLexp s))
+
+pickR :: Lexp -> String
+pickR lexp@(Apply a b) = head ((letters \\ boundvars lexp) \\freevars lexp)
+
 
 
 

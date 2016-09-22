@@ -85,6 +85,15 @@ betaDriver lexp@(Apply a b) = case a of
 
 beta :: Lexp -> Lexp
 beta lexp@(Lambda (Atom v) e) = 3
+beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
+                                           (Atom c) -> if (v `elem` freevars c)
+                                                           then
+                                                             map (\x -> if v==x then x=b else x) c
+                                                           else
+                                                             lexp
+                                            otherwise -> reducer c
+--isBoundIn a b = 
+
 
 alphaDriver :: Lexp -> Lexp
 alphaDriver lexp@(Atom v) = 
@@ -94,9 +103,6 @@ alphaDriver lexp@(Apply a b) =
 
 alpha :: Lexp -> String -> String -> Lexp
 alpha lexp@() s = 
-
-
-
 
 -- Entry point of program
 main = do

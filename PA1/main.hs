@@ -80,7 +80,7 @@ caneta lexp@(Lambda (Atom v) e) = case e of
 
 betaDriver :: Lexp -> Lexp
 betaDriver lexp@(Apply a b) = case a of
-                                (Lambda (Atom v) e) -> (beta (alphaDriver (Lambda (Atom v) (reducer e))))
+                                (Lambda (Atom v) e) -> (beta (alphaDriver ((Lambda (Atom v) (reducer e)) b))
 
 beta :: Lexp -> Lexp
 beta lexp@(Apply(Lambda (Atom v) e) b) = case e of

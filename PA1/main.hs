@@ -88,7 +88,7 @@ beta :: Lexp -> Lexp
 beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
                                            (Atom c) -> if (v `elem` freevars c)
                                                            then
-                                                             map (\x -> if v==x then x=b else x) c
+                                                             (Atom (map (\x -> if (v==x) then (let x=b) else (let x = x)) c))
                                                            else
                                                              lexp
                                            (Lambda(Atom k) q) -> then

@@ -51,7 +51,7 @@ reducer v@(Atom _) = v
 reducer lexp@(Lambda (Atom v) e) = ret
                                 where
                                     ret = (etaDriver (Lambda (Atom v) (reducer e)))
-reducer lexp@(Apply a b) = betaDriver (Apply (reducer a) (reducer b))
+reducer lexp@(Apply a b) = betaDriver (Apply ([reducer a) (reducer b)])
 
 etaDriver :: Lexp -> Lexp
 --First two cannot be eta reduced. Ignore
@@ -80,11 +80,9 @@ caneta lexp@(Lambda (Atom v) e) = case e of
 
 betaDriver :: Lexp -> Lexp
 betaDriver lexp@(Apply a b) = case a of
-                                (Lambda (Atom v) e) -> (beta (Lambda (Atom v) (reducer e)))
-                                otherwise->lexp
+                                (Lambda (Atom v) e) -> (beta (alphaDriver (Lambda (Atom v) (reducer e))))
 
 beta :: Lexp -> Lexp
-beta lexp@(Lambda (Atom v) e) = 3
 beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
                                            (Atom c) -> if (v `elem` freevars c)
                                                            then

@@ -94,13 +94,17 @@ beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
 
 
 alphaDriver :: Lexp -> Lexp
-alphaDriver lexp@(Atom v) = 
-alphaDriver lexp@(Lambda (Atom v) e) = 
-alphaDriver lexp@(Apply a b) = 
+alphaDriver lexp@(Apply a b) = if 
 
 
 alpha :: Lexp -> String -> String -> Lexp
-alpha lexp@() s = 
+alpha lexp@(Atom v) s r = if v==s
+                            then (Atom r)
+                            else lexp
+alpha lexp@(Lambda (Atom v) e) s r = if v==s
+                                        
+
+
 
 -- Entry point of program
 main = do

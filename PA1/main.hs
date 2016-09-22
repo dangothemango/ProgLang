@@ -80,7 +80,9 @@ caneta lexp@(Lambda (Atom v) e) = case e of
 
 betaDriver :: Lexp -> Lexp
 betaDriver lexp@(Apply a b) = case a of
-                                (Lambda (Atom v) e) -> (beta (alphaDriver (Lambda (Atom v) (reducer e))))
+                                (Atom v) -> Lexp
+                                (Lambda (Atom v) e) -> (beta (alphaDriver (Apply (Lambda (Atom v) (reducer e)) b)))
+                                (Apply c d) -> (betaDriver (Apply (reducer c)(reducer d)))
 
 beta :: Lexp -> Lexp
 beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
@@ -89,8 +91,11 @@ beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
                                                              map (\x -> if v==x then x=b else x) c
                                                            else
                                                              lexp
-                                            otherwise -> reducer c
---isBoundIn a b = 
+                                           (Lambda(Atom k) q) -> then
+                                                                 (Lambda (Atom k)(beta (Apply(Lambda (Atom v) q) b))
+                                           (Apply c d) -> then
+                                                           (beta (Apply(Lambda (Atom v) betaDriver(Apply c d)) b))
+                                         
 
 
 alphaDriver :: Lexp -> Lexp

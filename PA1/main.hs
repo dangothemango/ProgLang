@@ -84,6 +84,7 @@ betaDriver lexp@(Apply a b) = case a of
                                 (Atom v) -> lexp
                                 (Lambda (Atom v) e) -> (beta (reducer e) v b)
                                 (Apply c d) -> (Apply (betaDriver (Apply (reducer c) (reducer d))) b)
+                            where x= lexPrinter lexp
 
 beta :: Lexp -> String -> Lexp -> Lexp
 beta lexp@(Atom v) s rlexp = if s==v
@@ -95,7 +96,8 @@ beta lexp@(Apply a b) s rlexp=(Apply (beta a s rlexp) (beta b s rlexp))
 
 
 alphaDriver :: Lexp -> Lexp
-alphaDriver lexp@(Apply a b) = ( Apply (alphaIterate a (freevars b)) b)
+alphaDriver lexp@(Apply a b) = (Apply (alphaIterate a (freevars b)) b)
+                                    where x= lexPrinter lexp
 
 alphaIterate :: Lexp -> [String] -> Lexp
 alphaIterate lexp [] = lexp
@@ -123,7 +125,9 @@ alpha lexp@(Apply a b) r oLexp s= (Apply (alpha a r oLexp s) (alpha a r oLexp s)
 pickR :: Lexp -> String
 pickR lexp = head ((letters \\ boundvars lexp) \\freevars lexp)
 
-
+lexPrinter :: Lexp -> IO() 
+lexPrinter = do
+                putStrLn ((show lexp))
 
 
 -- Entry point of program

@@ -1,4 +1,7 @@
 import PA1Helper
+import Data.List
+
+letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 
 -- Haskell representation of lambda expression
 -- In Lambda Lexp Lexp, the first Lexp should always be Atom String
@@ -48,7 +51,7 @@ reducer v@(Atom _) = v
 reducer lexp@(Lambda (Atom v) e) = ret
                                 where
                                     ret = (etaDriver (Lambda (Atom v) (reducer e)))
-reducer lexp@(Apply a b) = betaDriverDriver (Apply (reducer a) (reducer b))
+reducer lexp@(Apply a b) = betaDriver (Apply (reducer a) (reducer b))
 
 etaDriver :: Lexp -> Lexp
 --First two cannot be eta reduced. Ignore
@@ -56,11 +59,11 @@ etaDriver v@(Atom _) = v
 etaDriver lexp@(Apply _ _) = lexp
 --Can be eta reduced. Lets find out
 etaDriver lexp@(Lambda (Atom v) e) = if caneta lexp
-                                then
-                                    (doeta e)
-                                else
-                                    lexp
-                                where
+                                        then
+                                            (doeta e)
+                                        else
+                                            lexp
+                                        where
 
 doeta :: Lexp -> Lexp
 doeta lexp@(Apply a b) = a
@@ -77,13 +80,23 @@ caneta lexp@(Lambda (Atom v) e) = case e of
 
 betaDriver :: Lexp -> Lexp
 betaDriver lexp@(Apply a b) = case a of
-                                (Lambda (Atom v) e) -> (beta lexp)
+                                (Lambda (Atom v) e) -> (beta (Lambda (Atom v) (reducer e)))
                                 otherwise->lexp
 
 beta :: Lexp -> Lexp
-beta lexp@(Lambda (Atom v) e);
+beta lexp@(Lambda (Atom v) e) = 3
 
---isBoundIn a b = 
+alphaDriver :: Lexp -> Lexp
+alphaDriver lexp@(Atom v) = 
+alphaDriver lexp@(Lambda (Atom v) e) = 
+alphaDriver lexp@(Apply a b) = 
+
+
+alpha :: Lexp -> String -> String -> Lexp
+alpha lexp@() s = 
+
+
+
 
 -- Entry point of program
 main = do

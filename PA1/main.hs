@@ -51,7 +51,7 @@ reducer v@(Atom _) = v
 reducer lexp@(Lambda (Atom v) e) = ret
                                 where
                                     ret = (etaDriver (Lambda (Atom v) (reducer e)))
-reducer lexp@(Apply a b) = alphaDriver lexp --betaDriver (Apply ([reducer a) (reducer b)])
+reducer lexp@(Apply a b) = betaDriver (Apply (reducer a) (reducer b))
 
 etaDriver :: Lexp -> Lexp
 --First two cannot be eta reduced. Ignore
@@ -80,45 +80,40 @@ caneta lexp@(Lambda (Atom v) e) = case e of
 
 betaDriver :: Lexp -> Lexp
 betaDriver lexp@(Apply a b) = case a of
-                                (Atom v) -> Lexp
-                                (Lambda (Atom v) e) -> (beta (alphaDriver (Apply (Lambda (Atom v) (reducer e)) b)))
-                                (Apply c d) -> (betaDriver (Apply (reducer c)(reducer d)))
+                                (Atom v) -> lexp
+                                (Lambda (Atom v) e) -> (beta (reducer e) v b)
+                                (Apply c d) -> (betaDriver (Apply (reducer c) (reducer d)))
 
-beta :: Lexp -> Lexp
-beta lexp@(Apply(Lambda (Atom v) e) b) = case e of
-                                           (Atom c) -> if (v `elem` freevars c)
-                                                           then
-                                                             map (\x -> if v==x then x=b else x) c
-                                                           else
-                                                             lexp
-                                           (Lambda(Atom k) q) -> then
-                                                                 (Lambda (Atom k)(beta (Apply(Lambda (Atom v) q) b))
-                                           (Apply c d) -> then
-                                                           (beta (Apply(Lambda (Atom v) betaDriver(Apply c d)) b))
+beta :: Lexp -> String -> Lexp -> Lexp
+beta lexp@(Atom v) s rlexp = if s==v
+                                    then rlexp
+                                    else lexp
+beta lexp@(Lambda (Atom v) e) s rlexp = (Lambda (Atom v) (beta e s rlexp))
+beta lexp@(Apply a b) s rlexp=(Apply (beta a s rlexp) (beta b s rlexp))
                                          
 
 
-alphaDriver :: Lexp -> Lexp
-alphaDriver lexp@(Apply a b) = map (alpha a "" lexp) (freevars b)
+{-alphaDriver :: Lexp -> Lexp
+alphaDriver lexp@(Apply a b) = lexp
+                                where b=map (alpha a "" lexp) (freevars b)
 
 
 
-alpha :: Lexp -> String -> String -> Lexp -> Lexp
+alpha :: Lexp -> String -> Lexp -> String -> Lexp
 alpha lexp@(Atom v) r oLexp s = if v==s
-                            then (Atom r)
-                            else lexp
-alpha lexp@(Lambda (Atom v) e) r oLexp s= if v==s
-                                        then
-                                            if r==""
-                                                then (Lambda (Atom r2) (alpha e r2 oLexp s))
-                                                else (Lambda (Atom r) (alpha e r oLexp s))
-                                                where r2=(pickR oLexp)
-                                        else
-                                            (Lambda (Atom v) (alpha e r oLexp s))
+                                  then (Atom r)
+                                  else lexp
+alpha lexp@(Lambda (Atom v) e) r oLexp s
+  | not (v==s) = (Lambda (Atom v) (alpha e r oLexp s))
+  | v==s = if r=="" 
+            then (Lambda (Atom r2) (alpha e (r2) oLexp s))
+            else(Lambda (Atom r) (alpha e r oLexp s))
+            where r2=(pickR oLexp)
+                                                
 alpha lexp@(Apply a b) r oLexp s= (Apply (alpha a r oLexp s) (alpha a r oLexp s))
 
 pickR :: Lexp -> String
-pickR lexp@(Apply a b) = head ((letters \\ boundvars lexp) \\freevars lexp)
+pickR lexp@(Apply a b) = head ((letters \\ boundvars lexp) \\freevars lexp)-}
 
 
 
